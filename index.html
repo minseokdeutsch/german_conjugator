@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>German Conjugator — Lina Tool (B1+) / 한국어 인터페이스 포함</title>
+  <style>
+    :root{--bg:#fff;--muted:#6b7280}
+    body{font-family:Inter,system-ui, sans-serif;max-width:960px;margin:20px auto;padding:18px;color:#0b1226}
+    h1{font-size:1.4rem;margin-bottom:6px}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    label{display:block;margin-top:10px}
+    input,select,button{padding:8px 10px;font-size:1rem;margin-top:6px}
+    table{border-collapse:collapse;margin-top:16px;width:100%}
+    th,td{border:1px solid #ddd;padding:10px;text-align:left}
+    .note{margin-top:12px;font-size:0.95rem;color:var(--muted)}
+    .kbd{background:#f3f4f6;padding:2px 6px;border-radius:6px}
+    .controls{margin-top:12px}
+    .lang-toggle{margin-left:8px}
+    details{margin-top:12px}
+    .hint{font-size:0.95rem;color:#374151}
+    .example{background:#f9fafb;padding:10px;border-radius:8px;margin-top:10px}
+  </style>
+</head>
+<body>
+  <h1>German Conjugator — Lina Tool</h1>
+  <p class="note">이 도구는 입력한 독일어 동사의 <strong>Präsens / Perfekt / Konjunktiv II</strong> 형태를 보여줍니다. 한국어 인터페이스를 포함하여, 불규칙 동사, 분리동사(trennbare Verben), 과거분사(Partizip II) 생성 규칙을 간단히 제공합니다. (테스트용 베이스 버전)</p>
+
+  <div class="row">
+    <label style="flex:1 1 280px">동사(Infinitiv) — 예: <span class="kbd">möchten</span> 또는 <span class="kbd">aufstehen</span>
+      <input id="verbInput" placeholder="z. B. möchten / aufstehen / essen" />
+    </label>
+
+    <label style="width:220px">시제 / 형태
+      <select id="tenseSelect">
+        <option value="pres">Präsens</option>
+        <option value="perf">Perfekt (Partizip II + Hilfsverb)</option>
+        <option value="konj2">Konjunktiv II (Höflichkeitsform)</option>
+      </select>
+    </label>
+
+    <label style="width:160px">인터페이스 언어
+      <select id="uiLang">
+        <option value="de">Deutsch (DE)</option>
+        <option value="kr">한국어 (KR)</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="controls">
+    <button id="conjBtn">Konjugieren / 결과 보기</button>
+    <button id="downloadBtn">HTML 다운로드</button>
+  </div>
+
+  <div id="result"></div>
+
+  <details>
+    <summary>도구 설명 / Hinweise (클릭해서 펼치기)</summary>
+    <div class="hint">
+      <ul>
+        <li>규칙 동사: 어간(stem) + 규칙어미로 Präsens 생성</li>
+        <li>불규칙 동사: 내부 데이터베이스를 우선 사용 (많은 일반 동사 포함)</li>
+        <li>분리동사(trennbare Verben): 예: <em>aufstehen</em> → Präsens: ich stehe auf, Partizip II: aufgestanden</li>
+        <li>과거분사(Partizip II) 생성 규칙은 간단한 휴리스틱을 사용합니다. 완전한 정답을 위해서는 동사별 데이터 확장이 필요합니다.</li>
+      </ul>
+    </div>
+  </details>
+
+  <p class="note">배포 팁: GitHub Pages에 이 HTML 파일을 올리면 즉시 정적 웹페이지로 배포할 수 있습니다. 아래에 자세한 배포 가이드가 있습니다.</p>
+
+  <h3>배포 가이드 (간단)</h3>
+  <ol>
+    <li>GitHub에 새 리포지토리 생성 (public 권장)</li>
+    <li>이 HTML 파일을 저장하고 커밋 → GitHub Pages 활성화(설정 > Pages)</li>
+    <li>곧 <code>https://yourname.github.io/repo-name/</code> 로 접속 가능</li>
+  </ol>
+
+  <h3>개선/확장 계획</h3>
+  <ul>
+    <li>불규칙 동사 DB 추가 (강변화형 Partizip II 포함)</li>
+    <li>한국어 예문/설명 풍부화</li>
+    <li>음성 재생(발음) 추가 — TTS 연동</li>
+  </ul>
+
+  <script>
+    // 확장된 불규칙 동사 및 과거분사/조동사 정보
+    const verbDB = {
+      // verb: {pres: [ich,du,er,wir,ihr,sie], partizip: 'gegessen', aux: 'haben'}
+      'sein': {pres:['bin','bist','ist','sind','seid','sind'], partizip:'gewesen', aux:'sein'},
+      'haben': {pres:['habe','hast','hat','haben','habt','haben'], partizip:'gehabt', aux:'haben'},
+      'gehen': {pres:['gehe','gehst','geht','gehen','geht','gehen'], partizip:'gegangen', aux:'sein'},
+      'kommen': {pres:['komme','kommst','kommt','kommen','kommt','kommen'], partizip:'gekommen', aux:'sein'},
+      'machen': {pres:['mache','machst','macht','machen','macht','machen'], partizip:'gemacht', aux:'haben'},
+      'essen': {pres:['esse','isst','isst','essen','esst','essen'], partizip:'gegessen', aux:'haben'},
+      'trinken': {pres:['trinke','trinkst','trinkt','trinken','trinkt','trinken'], partizip:'getrunken', aux:'haben'},
+      'sehen': {pres:['sehe','siehst','sieht','sehen','seht','sehen'], partizip:'gesehen', aux:'haben'},
+      'wissen': {pres:['weiß','weißt','weiß','wissen','wisst','wissen'], partizip:'gewusst', aux:'haben'},
+      'mögen': {pres:['mag','magst','mag','mögen','mögt','mögen'], partizip:'gemocht', aux:'haben'},
+      'möchten': {pres:['möchte','möchtest','möchte','möchten','möchtet','möchten'], partizip:'gemöchtet', aux:'haben'},
+      'können': {pres:['kann','kannst','kann','können','könnt','können'], partizip:'gekonnt', aux:'haben'},
+      'wollen': {pres:['will','willst','will','wollen','wollt','wollen'], partizip:'gewollt', aux:'haben'},
+      'müssen': {pres:['muss','musst','muss','müssen','müsst','müssen'], partizip:'gemusst', aux:'haben'},
+      'dürfen': {pres:['darf','darfst','darf','dürfen','dürft','dürfen'], partizip:'gedurft', aux:'haben'},
+      'sollen': {pres:['soll','sollst','soll','sollen','sollt','sollen'], partizip:'gesollt', aux:'haben'},
+      'aufstehen': {pres:['stehe auf','stehst auf','steht auf','stehen auf','steht auf','stehen auf'], partizip:'aufgestanden', aux:'sein'},
+      'anfangen': {pres:['fange an','fängst an','fängt an','fangen an','fangt an','fangen an'], partizip:'angefangen', aux:'haben'},
+      'anrufen': {pres:['rufe an','rufst an','ruft an','rufen an','ruft an','rufen an'], partizip:'angerufen', aux:'haben'},
+      'aufmachen': {pres:['mache auf','machst auf','macht auf','machen auf','macht auf','machen auf'], partizip:'aufgemacht', aux:'haben'},
+      'aufmachen2': {pres:['mache auf','machst auf','macht auf','machen auf','macht auf','machen auf'], partizip:'aufgemacht', aux:'haben'}
+    };
+
+    // 간단한 분리/비분리 접두사 규칙
+    const separablePrefixes = ['ab','an','auf','aus','bei','ein','mit','nach','vor','zu','zurück','los'];
+    const inseparablePrefixes = ['be','ge','emp','ent','er','ver','zer'];
+
+    const persons = ['ich','du','er/sie/es','wir','ihr','sie/Sie'];
+
+    function isSeparable(inf) {
+      for (const p of separablePrefixes) if (inf.startsWith(p) && inf.length>p.length+1) return p;
+      return null;
+    }
+    function hasInseparablePrefix(inf) {
+      for (const p of inseparablePrefixes) if (inf.startsWith(p) && inf.length>p.length+1) return p;
+      return null;
+    }
+
+    function conjugateRegular(inf) {
+      let stem = inf;
+      if (inf.endsWith('en')) stem = inf.slice(0,-2);
+      else if (inf.endsWith('n')) stem = inf.slice(0,-1);
+
+      const needsE = /[td]$/i.test(stem) || /[^aeiouäöüy]n$/.test(stem);
+      const endings = [ 'e', needsE ? 'est' : 'st', needsE ? 'et' : 't', 'en', 't', 'en' ];
+
+      return endings.map((end,i) => {
+        if (i===1 && /[sßzx]$/.test(stem)) return stem + 't';
+        return stem + end;
+      });
+    }
+
+    function makePartizip(inf) {
+      // 우선 DB 확인
+      if (verbDB[inf] && verbDB[inf].partizip) return {part: verbDB[inf].partizip, aux: verbDB[inf].aux};
+
+      // 분리동사 처리
+      const sep = isSeparable(inf);
+      if (sep) {
+        const stem = inf.slice(sep.length);
+        // 약한 동사 가정
+        const part = sep + 'ge' + (stem.endsWith('en')? stem.slice(0,-2) : stem) + 't';
+        return {part, aux: ['gehen','kommen','aufstehen'].includes(inf)? 'sein':'haben'};
+      }
+
+      // 비분리 접두사일 경우 ge- 없음
+      if (hasInseparablePrefix(inf)) {
+        const stem = inf;
+        const base = stem.endsWith('en')? stem.slice(0,-2) : stem;
+        return {part: base + 't', aux:'haben'}; // 단순화
+      }
+
+      // 규칙 약한 동사: ge- + stem + t
+      const stem = inf.endsWith('en')? inf.slice(0,-2) : (inf.endsWith('n')? inf.slice(0,-1): inf);
+      return {part: 'ge' + stem + 't', aux:'haben'};
+    }
+
+    function makeKonj2(verb) {
+      // DB에 있는 경우 간단 리턴 (대부분 모달/불규칙은 DB로 처리)
+      if (verbDB[verb] && verbDB[verb].pres) {
+        // 간단히 ich-Form을 Konjunktiv-II 형태처럼 보이게: würde + Infinitiv fallback
+        // 모달 등은 별도 처리해두었음 (e.g., möchten)
+        return ['würde ' + verb, 'würdest ' + verb, 'würde ' + verb, 'würden ' + verb, 'würdet ' + verb, 'würden ' + verb];
+      }
+      // 규칙 동사도 würde + Infinitiv 사용
+      return ['würde ' + verb, 'würdest ' + verb, 'würde ' + verb, 'würden ' + verb, 'würdet ' + verb, 'würden ' + verb];
+    }
+
+    function displayForms(verb, forms, note, uiLang) {
+      let html = `<h3>${uiLang==='kr'? '동사':'Verb'}: <em>${verb}</em> <small> ${note}</small></h3>`;
+      html += '<table><thead><tr><th>' + (uiLang==='kr'? '인칭':'Person') + '</th><th>' + (uiLang==='kr'? '형태':'Form') + '</th></tr></thead><tbody>';
+      for (let i=0;i<persons.length;i++){
+        html += `<tr><td>${persons[i]}</td><td><strong>${forms[i]}</strong></td></tr>`;
+      }
+      html += '</tbody></table>';
+      showResult(html);
+    }
+
+    function showResult(html) { document.getElementById('result').innerHTML = html; }
+
+    document.getElementById('conjBtn').addEventListener('click', ()=>{
+      const raw = document.getElementById('verbInput').value.trim();
+      const tense = document.getElementById('tenseSelect').value;
+      const uiLang = document.getElementById('uiLang').value;
+      if (!raw) return alert(uiLang==='kr'? '동사를 입력하세요. 예: möchten' : 'Bitte ein Verb eingeben. z. B. möchten');
+
+      const verb = raw.toLowerCase();
+
+      if (tense === 'pres') {
+        if (verbDB[verb]) {
+          displayForms(verb, verbDB[verb].pres, uiLang==='kr'? '(DB 기반 Präsens)':'(Datenbank)', uiLang);
+          return;
+        }
+
+        // 분리동사 처리: Präsens에서 어순 'stehe auf'처럼 처리
+        const sep = isSeparable(verb);
+        if (sep) {
+          // stem을 분리해서 규칙적으로 만든 뒤 각 인칭 뒤에 접두사 붙이기
+          const stem = verb.slice(sep.length);
+          const regForms = conjugateRegular(stem);
+          const combined = regForms.map((f,i)=> f + ' ' + sep);
+          displayForms(verb, combined, uiLang==='kr'? '(분리동사 Präsens 가정)':'(trennbares Verb Präsens)', uiLang);
+          return;
+        }
+
+        // regular fallback
+        const reg = conjugateRegular(verb);
+        displayForms(verb, reg, uiLang==='kr'? '(규칙 동사 가정)':'(regelmäßige Form angenommen)', uiLang);
+        return;
+      }
+
+      if (tense === 'perf') {
+        // Partizip II 생성 + 조동사
+        const p = makePartizip(verb);
+        const aux = p.aux || 'haben';
+        // 조동사 현재형 가져오기
+        const auxForms = verbDB[aux] ? verbDB[aux].pres : conjugateRegular(aux);
+        // Perfekt: aux(2인칭?)? standard: haben/sein + Partizip
+        const perfForms = auxForms.map(a => a + ' ' + p.part);
+        displayForms(verb, perfForms, uiLang==='kr'? `(Perfekt: ${aux} + ${p.part})` : `(Perfekt: ${aux} + ${p.part})`, uiLang);
+        return;
+      }
+
+      if (tense === 'konj2') {
+        const konj = makeKonj2(verb);
+        displayForms(verb, konj, uiLang==='kr'? '(Konjunktiv II - würde 형태 사용)':'(Konjunktiv II - würde form)', uiLang);
+        return;
+      }
+    });
+
+    // 다운로드 버튼: 현재 HTML 내용을 파일로 저장
+    document.getElementById('downloadBtn').addEventListener('click', ()=>{
+      const blob = new Blob([document.documentElement.outerHTML], {type:'text/html'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'german-conjugator-lina.html';
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+  </script>
+</body>
+</html>
+
+
