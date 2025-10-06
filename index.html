@@ -1,86 +1,159 @@
-<!doctype html>
-<html lang="de">
+<!DOCTYPE html>
+<html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>German Conjugator — Lina Tool (B1+) / 한국어 인터페이스 포함</title>
-  <style>
-    :root{--bg:#fff;--muted:#6b7280}
-    body{font-family:Inter,system-ui, sans-serif;max-width:960px;margin:20px auto;padding:18px;color:#0b1226}
-    h1{font-size:1.4rem;margin-bottom:6px}
-    .row{display:flex;gap:12px;flex-wrap:wrap}
-    label{display:block;margin-top:10px}
-    input,select,button{padding:8px 10px;font-size:1rem;margin-top:6px}
-    table{border-collapse:collapse;margin-top:16px;width:100%}
-    th,td{border:1px solid #ddd;padding:10px;text-align:left}
-    .note{margin-top:12px;font-size:0.95rem;color:var(--muted)}
-    .kbd{background:#f3f4f6;padding:2px 6px;border-radius:6px}
-    .controls{margin-top:12px}
-    .lang-toggle{margin-left:8px}
-    details{margin-top:12px}
-    .hint{font-size:0.95rem;color:#374151}
-    .example{background:#f9fafb;padding:10px;border-radius:8px;margin-top:10px}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A1를 위한 독일어 동사 사전</title>
+<style>
+/* 전체 배경 & 폰트 */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* 헤더 스타일 */
+header {
+    background-color: #4a90e2;
+    color: white;
+    padding: 20px 0;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+/* 검색창 스타일 */
+.search-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.search-container input[type="text"] {
+    width: 60%;
+    padding: 10px 15px;
+    border-radius: 25px 0 0 25px;
+    border: 1px solid #ccc;
+    outline: none;
+    font-size: 1rem;
+}
+
+.search-container button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #4a90e2;
+    color: white;
+    border-radius: 0 25px 25px 0;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: 0.3s;
+}
+
+.search-container button:hover {
+    background-color: #357ab8;
+}
+
+/* 카드 스타일 (단어/동사 표시용) */
+.card {
+    background: white;
+    max-width: 600px;
+    margin: 15px auto;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card h2 {
+    margin-top: 0;
+    color: #4a90e2;
+}
+
+.card p {
+    margin: 5px 0;
+}
+
+/* 푸터 스타일 */
+footer {
+    text-align: center;
+    padding: 15px 0;
+    background-color: #4a90e2;
+    color: white;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    font-size: 0.9rem;
+}
+</style>
 </head>
 <body>
-  <h1>German Conjugator — Lina Tool</h1>
-  <p class="note">이 도구는 입력한 독일어 동사의 <strong>Präsens / Perfekt / Konjunktiv II</strong> 형태를 보여줍니다. 한국어 인터페이스를 포함하여, 불규칙 동사, 분리동사(trennbare Verben), 과거분사(Partizip II) 생성 규칙을 간단히 제공합니다. (테스트용 베이스 버전)</p>
 
-  <div class="row">
-    <label style="flex:1 1 280px">동사(Infinitiv) — 예: <span class="kbd">möchten</span> 또는 <span class="kbd">aufstehen</span>
-      <input id="verbInput" placeholder="z. B. möchten / aufstehen / essen" />
-    </label>
+<header>
+    <h1>A1를 위한 독일어 동사 사전</h1>
+</header>
 
-    <label style="width:220px">시제 / 형태
-      <select id="tenseSelect">
-        <option value="pres">Präsens</option>
-        <option value="perf">Perfekt (Partizip II + Hilfsverb)</option>
-        <option value="konj2">Konjunktiv II (Höflichkeitsform)</option>
-      </select>
-    </label>
+<div class="search-container">
+    <input type="text" id="searchInput" placeholder="단어 또는 동사를 검색하세요...">
+    <button onclick="searchWord()">검색</button>
+</div>
 
-    <label style="width:160px">인터페이스 언어
-      <select id="uiLang">
-        <option value="de">Deutsch (DE)</option>
-        <option value="kr">한국어 (KR)</option>
-      </select>
-    </label>
-  </div>
-
-  <div class="controls">
-    <button id="conjBtn">Konjugieren / 결과 보기</button>
-    <button id="downloadBtn">HTML 다운로드</button>
-  </div>
-
-  <div id="result"></div>
-
-  <details>
-    <summary>도구 설명 / Hinweise (클릭해서 펼치기)</summary>
-    <div class="hint">
-      <ul>
-        <li>규칙 동사: 어간(stem) + 규칙어미로 Präsens 생성</li>
-        <li>불규칙 동사: 내부 데이터베이스를 우선 사용 (많은 일반 동사 포함)</li>
-        <li>분리동사(trennbare Verben): 예: <em>aufstehen</em> → Präsens: ich stehe auf, Partizip II: aufgestanden</li>
-        <li>과거분사(Partizip II) 생성 규칙은 간단한 휴리스틱을 사용합니다. 완전한 정답을 위해서는 동사별 데이터 확장이 필요합니다.</li>
-      </ul>
+<div id="results">
+    <!-- 검색 결과 카드가 여기에 표시됩니다 -->
+    <div class="card">
+        <h2>sein (to be)</h2>
+        <p>Ich bin</p>
+        <p>Du bist</p>
+        <p>Er/Sie/Es ist</p>
+        <p>Wir sind</p>
+        <p>Ihr seid</p>
+        <p>Sie sind</p>
     </div>
-  </details>
+</div>
 
-  <p class="note">배포 팁: GitHub Pages에 이 HTML 파일을 올리면 즉시 정적 웹페이지로 배포할 수 있습니다. 아래에 자세한 배포 가이드가 있습니다.</p>
+<footer>
+    &copy; 2025 A1 독일어 학습 사이트
+</footer>
 
-  <h3>배포 가이드 (간단)</h3>
-  <ol>
-    <li>GitHub에 새 리포지토리 생성 (public 권장)</li>
-    <li>이 HTML 파일을 저장하고 커밋 → GitHub Pages 활성화(설정 > Pages)</li>
-    <li>곧 <code>https://yourname.github.io/repo-name/</code> 로 접속 가능</li>
-  </ol>
+<script>
+function searchWord() {
+    const input = document.getElementById('searchInput').value.toLowerCase();
+    const results = document.getElementById('results');
 
-  <h3>개선/확장 계획</h3>
-  <ul>
-    <li>불규칙 동사 DB 추가 (강변화형 Partizip II 포함)</li>
-    <li>한국어 예문/설명 풍부화</li>
-    <li>음성 재생(발음) 추가 — TTS 연동</li>
-  </ul>
+    // 예시 동사 데이터
+    const verbs = {
+        "sein": ["Ich bin", "Du bist", "Er/Sie/Es ist", "Wir sind", "Ihr seid", "Sie sind"],
+        "haben": ["Ich habe", "Du hast", "Er/Sie/Es hat", "Wir haben", "Ihr habt", "Sie haben"]
+    };
+
+    results.innerHTML = ""; // 기존 결과 삭제
+
+    if(verbs[input]){
+        let card = document.createElement('div');
+        card.className = "card";
+        let html = `<h2>${input}</h2>`;
+        verbs[input].forEach(v => {
+            html += `<p>${v}</p>`;
+        });
+        card.innerHTML = html;
+        results.appendChild(card);
+    } else {
+        results.innerHTML = `<p style="text-align:center;">검색 결과가 없습니다.</p>`;
+    }
+}
+</script>
+
+</body>
+</html>
 
   <script>
     // 확장된 불규칙 동사 및 과거분사/조동사 정보
