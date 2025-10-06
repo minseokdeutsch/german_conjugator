@@ -125,26 +125,6 @@ footer {
 </footer>
 
 <script>
-function searchWord() {
-    const input = document.getElementById('searchInput').value.toLowerCase();
-    const results = document.getElementById('results');
-
-    results.innerHTML = ""; // 기존 결과 삭제
-
-    if(verbDB[input]){
-        let card = document.createElement('div');
-        card.className = "card";
-        let html = `<h2>${input}</h2>`;
-        verbDB[input].forEach(v => {
-            html += `<p>${v}</p>`;
-        });
-        card.innerHTML = html;
-        results.appendChild(card);
-    } else {
-        results.innerHTML = `<p style="text-align:center;">검색 결과가 없습니다.</p>`;
-    }
-}
-
     // 확장된 불규칙 동사 및 과거분사/조동사 정보
     const verbDB = {
   // verb: {pres: [ich,du,er/sie/es,wir,ihr,sie/Sie], partizip: 'Partizip II', aux: 'haben/sein'}
@@ -467,6 +447,26 @@ console.log(conjugateB1('sein', 2, 'prat'));      // war
       a.href = url; a.download = 'german-conjugator-lina.html';
       document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
     });
+
+function searchWord() {
+    const input = document.getElementById('searchInput').value.toLowerCase();
+    const results = document.getElementById('results');
+
+    results.innerHTML = ""; // 기존 결과 삭제
+
+    if(verbDB[input]){
+        let card = document.createElement('div');
+        card.className = "card";
+        let html = `<h2>${input}</h2>`;
+        verbDB[input].forEach(v => {
+            html += `<p>${v}</p>`;
+        });
+        card.innerHTML = html;
+        results.appendChild(card);
+    } else {
+        results.innerHTML = `<p style="text-align:center;">검색 결과가 없습니다.</p>`;
+    }
+}
   </script>
 </body>
 </html>
