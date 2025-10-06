@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>A1 초급자를 위한 독일어 동사 사전</title>
+<title>초급자를 위한 독일어 A1 동사 사전</title>
 <style>
 /* 전체 배경 & 폰트 */
 body {
@@ -99,7 +99,7 @@ footer {
 <body>
 
 <header>
-    <h1>A1 초급자를 위한 독일어 동사 사전</h1>
+    <h1>A1 초급자를 위한 독일어 A1 동사 사전</h1>
 </header>
 
 <div class="search-container">
@@ -129,19 +129,13 @@ function searchWord() {
     const input = document.getElementById('searchInput').value.toLowerCase();
     const results = document.getElementById('results');
 
-    // 예시 동사 데이터
-    const verbs = {
-        "sein": ["Ich bin", "Du bist", "Er/Sie/Es ist", "Wir sind", "Ihr seid", "Sie sind"],
-        "haben": ["Ich habe", "Du hast", "Er/Sie/Es hat", "Wir haben", "Ihr habt", "Sie haben"]
-    };
-
     results.innerHTML = ""; // 기존 결과 삭제
 
-    if(verbs[input]){
+    if(verbDB[input]){
         let card = document.createElement('div');
         card.className = "card";
         let html = `<h2>${input}</h2>`;
-        verbs[input].forEach(v => {
+        verbDB[input].forEach(v => {
             html += `<p>${v}</p>`;
         });
         card.innerHTML = html;
