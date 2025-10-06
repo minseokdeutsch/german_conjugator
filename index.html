@@ -82,6 +82,81 @@
     <li>음성 재생(발음) 추가 — TTS 연동</li>
   </ul>
 
+// 인칭 배열
+const persons = ['ich','du','er/sie/es','wir','ihr','sie/Sie'];
+
+// 규칙 동사 Perfekt 생성 함수
+function regularPerfekt(verb) {
+    let stem = verb.slice(0, -2); // -en 제거
+    return 'ge' + stem + 't';
+}
+
+// 규칙 동사 Präteritum 생성 함수
+function regularPrateritum(verb) {
+    let stem = verb.slice(0, -2);
+    let endings = ['te','test','te','ten','tet','ten'];
+    return endings.map((e) => stem + e);
+}
+
+// 규칙 동사 Präsens 생성 함수
+function regularPrasens(verb) {
+    let stem = verb.slice(0, -2);
+    let endings = ['e','st','t','en','t','en'];
+    return endings.map((e) => stem + e);
+}
+
+// Umlaut/강변화 동사 예외 테이블
+const strongVerbs = {
+    'fahren': {du:'fährst', er:'fährt', perf:'gefahren', aux:'sein', prat:['fuhr','fuhrst','fuhr','fuhren','fuhrt','fuhren']},
+    'laufen': {du:'läufst', er:'läuft', perf:'gelaufen', aux:'sein', prat:['lief','liefst','lief','liefen','lieft','liefen']},
+    'sehen': {du:'siehst', er:'sieht', perf:'gesehen', aux:'haben', prat:['sah','sahst','sah','sahen','saht','sahen']},
+    'geben': {du:'gibst', er:'gibt', perf:'gegeben', aux:'haben', prat:['gab','gabst','gab','gaben','gabt','gaben']}
+    // 필요시 추가
+};
+
+// 불규칙 동사 테이블
+const irregularVerbs = {
+    'sein': {pres:['bin','bist','ist','sind','seid','sind'], perf:'gewesen', aux:'sein', prat:['war','warst','war','waren','wart','waren']},
+    'haben': {pres:['habe','hast','hat','haben','habt','haben'], perf:'gehabt', aux:'haben', prat:['hatte','hattest','hatte','hatten','hattet','hatten']},
+    'werden': {pres:['werde','wirst','wird','werden','werdet','werden'], perf:'geworden', aux:'sein', prat:['wurde','wurdest','wurde','wurden','wurdet','wurden']}
+    // 필요시 추가
+};
+
+// 통합 함수: Präsens, Perfekt, Präteritum
+function conjugateB1(verb, personIndex, tense='pres') {
+    const person = persons[personIndex];
+
+    // 1) 불규칙 동사
+    if(irregularVerbs[verb]){
+        if(tense === 'pres') return irregularVerbs[verb].pres[personIndex];
+        if(tense === 'perf') return irregularVerbs[verb].aux + ' ' + irregularVerbs[verb].perf;
+        if(tense === 'prat') return irregularVerbs[verb].prat[personIndex];
+    }
+
+    // 2) Umlaut/강변화 동사
+    if(strongVerbs[verb]){
+        if(tense === 'pres') {
+            if(person === 'du' && strongVerbs[verb].du) return strongVerbs[verb].du;
+            if(person === 'er/sie/es' && strongVerbs[verb].er) return strongVerbs[verb].er;
+            return regularPrasens(verb)[personIndex];
+        }
+        if(tense === 'perf') return strongVerbs[verb].aux + ' ' + strongVerbs[verb].perf;
+        if(tense === 'prat') return strongVerbs[verb].prat[personIndex];
+    }
+
+    // 3) 규칙 동사
+    if(tense === 'pres') return regularPrasens(verb)[personIndex];
+    if(tense === 'perf') return 'haben' + ' ' + regularPerfekt(verb);
+    if(tense === 'prat') return regularPrateritum(verb)[personIndex];
+}
+
+// 사용 예시
+console.log(conjugateB1('spielen', 1, 'pres'));   // du spielst
+console.log(conjugateB1('spielen', 1, 'perf'));   // haben gespielt
+console.log(conjugateB1('fahren', 1, 'pres'));    // du fährst
+console.log(conjugateB1('fahren', 1, 'perf'));    // sein gefahren
+console.log(conjugateB1('sein', 2, 'prat'));      // war
+
   <script>
     // 확장된 불규칙 동사 및 과거분사/조동사 정보
     const verbDB = {
