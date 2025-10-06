@@ -447,6 +447,34 @@ console.log(conjugateB1('sein', 2, 'prat'));      // war
       a.href = url; a.download = 'german-conjugator-lina.html';
       document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
     });
+
+function searchWord() {
+    // 입력값 읽기
+    const input = document.getElementById('searchInput').value.trim().toLowerCase();
+    const resultsDiv = document.getElementById('results');
+    resultsDiv.innerHTML = ''; // 기존 결과 지우기
+
+    // 아무것도 입력 안했을 때
+    if (!input) {
+        resultsDiv.innerHTML = '<div class="card">검색어를 입력하세요.</div>';
+        return;
+    }
+
+    // 동사 DB에서 찾기
+    if (verbDB[input]) {
+        const pres = verbDB[input].pres;
+        let html = `<div class="card"><h2>${input}</h2>`;
+        for (let i = 0; i < pres.length; i++) {
+            html += `<p>${['Ich', 'Du', 'Er/Sie/Es', 'Wir', 'Ihr', 'Sie'][i]}: ${pres[i]}</p>`;
+        }
+        html += `<p>Partizip II: ${verbDB[input].partizip}</p>`;
+        html += `<p>Auxiliar: ${verbDB[input].aux}</p>`;
+        html += '</div>';
+        resultsDiv.innerHTML = html;
+    } else {
+        resultsDiv.innerHTML = `<div class="card">"${input}" 동사를 찾을 수 없습니다.</div>`;
+    }
+}
   </script>
 </body>
 </html>
